@@ -106,7 +106,14 @@ function render() {
 }
 
 const header = (title: string, ...right: (HTMLElement | false)[]) =>
-  h('header', { class: 'bar' }, h('div', { class: 'bar-title big' }, title), ...right.filter(Boolean) as HTMLElement[]);
+  h('header', { class: 'bar' }, h('div', { class: 'bar-title big' }, title), ...right.filter(Boolean) as HTMLElement[],
+    h('button', { class: 'gear', 'aria-label': t('Settings'), onclick: openSettings }, icon('gear')));
+
+/** Settings live at the bottom of the Databases tab; the gear in every header jumps there. */
+function openSettings() {
+  go({ tab: 'databases' });
+  requestAnimationFrame(() => document.getElementById('settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+}
 
 // ---------------- notebooks home ----------------
 async function newNotebook(cells?: Cell[], title = t('Untitled notebook')) {
@@ -405,7 +412,7 @@ function databasesPage() {
       h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, d.name), h('div', { class: 'row-sub' }, `PostgreSQL ${d.version}${d.extensions.length ? ` · ${d.extensions.length} ${t(d.extensions.length === 1 ? 'extension' : 'extensions')}` : ''}`)),
       d.id === cur?.id ? h('span', { class: 'badge on' }, t('Active')) : icon('chevron')))),
     h('div', { class: 'actions' }, h('button', { class: 'btn primary', onclick: newDatabase }, icon('plus'), t('New database'))),
-    h('h2', { class: 'section' }, t('Settings')),
+    h('h2', { class: 'section', id: 'settings' }, t('Settings')),
     h('div', { class: 'list' },
       settingRow('sun', t('Appearance'), { system: t('System'), light: t('Light'), dark: t('Dark') }, getThemePref(), (v) => { setThemePref(v as Theme); applyStatusBar(); render(); }),
       settingRow('globe', t('Language'), { system: t('System'), en: 'English', tr: 'Türkçe' }, getLangPref(), (v) => { setLangPref(v as LangPref); termEl = null; render(); })),

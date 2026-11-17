@@ -5,6 +5,7 @@ import { extForSqlName, createdExtensions } from './extensions';
 import { requirePro } from './pro';
 import { fmtValue } from './results';
 import { h, fmtMs } from './ui';
+import { querySucceeded } from './review';
 
 const lit = (s: string) => `'${s.replace(/'/g, "''")}'`;
 
@@ -102,7 +103,7 @@ export function terminalView(): HTMLElement {
       const missing = wanted.filter((w) => !engine.isLoaded(w.id));
       if (missing.length) { print(`Loading ${missing.map((m) => m.title).join(', ')}… (PostgreSQL restarts, data kept)`, 'muted'); await engine.loadExtensions(missing.map((m) => m.id)); }
     }
-    try { printResult(await engine.exec(sql)); } catch (e) { printError(e as PgError); }
+    try { printResult(await engine.exec(sql)); querySucceeded(); } catch (e) { printError(e as PgError); }
   }
 
   async function meta(line: string) {
@@ -183,7 +184,7 @@ export function terminalView(): HTMLElement {
     [['↑', () => recall(-1)], ['↓', () => recall(1)], ['\\', () => ins('\\')], [';', () => ins(';')], ['*', () => ins('*')], ['(', () => ins('(')], [')', () => ins(')')], ["'", () => ins("'")], ['=', () => ins('=')], [',', () => ins(',')], ['\\dt', () => { input.value = '\\dt'; void submit(); }], ['\\d', () => ins('\\d ')], ['\\dx', () => { input.value = '\\dx'; void submit(); }], ['\\?', () => { input.value = '\\?'; void submit(); }]]
       .map(([t, fn]) => h('button', { onclick: fn as () => void }, t as string)));
 
-  print(`PG Notebook terminal — ${engine.getState().version?.split(' on ')[0] ?? 'PostgreSQL'}\nType \\? for help. End SQL with ;`, 'muted');
+  print(`Tuple terminal — ${engine.getState().version?.split(' on ')[0] ?? 'PostgreSQL'}\nType \\? for help. End SQL with ;`, 'muted');
   setPrompt();
   engine.onState(() => setPrompt());
 

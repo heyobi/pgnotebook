@@ -1,9 +1,9 @@
-# PG Notebook
+# Tuple — SQL Notebook
 
 **PostgreSQL notebooks that run entirely on your iPhone.** A real PostgreSQL 18 server, PostGIS, pgvector,
 Apache AGE and 30+ other extensions, Jupyter-style cells, no network and no account.
 
-PG Notebook is to PostgreSQL what Juno is to Python: you write SQL in cells, run them, and see the results as
+Tuple is to PostgreSQL what Juno is to Python: you write SQL in cells, run them, and see the results as
 tables. Everything stays on the device.
 
 ## Features
@@ -13,7 +13,7 @@ tables. Everything stays on the device.
 - **Notebooks**: SQL and Markdown cells, run one or *Run all*, results as scrollable tables, NOTICE output,
   timings, CSV export of any result.
 - **Jupyter compatible**: notebooks are stored as `.ipynb` files (SQL kernel) in *Files › On My iPhone ›
-  PG Notebook › Notebooks*. Import `.ipynb` or `.sql`, share as either.
+  Tuple › Notebooks*. Import `.ipynb` or `.sql`, share as either.
 - **Extensions** bundled in the app (nothing is downloaded): PostGIS, pgvector, Apache AGE, pgcrypto, pg_trgm,
   hstore, ltree, citext, uuid-ossp, pg_uuidv7, pg_hashids, tablefunc, pg_ivm, pgmq, pgTAP, pg_textsearch,
   btree_gin/gist, bloom and more. Turn them on in *Database*; `CREATE EXTENSION` on one that is off offers to turn it on.
@@ -68,7 +68,7 @@ Connect app record must exist (bundle ID `com.heyobi.pgnotebook`).
 
 ## Licence
 
-PG Notebook's own code is MIT licensed (see `LICENSE`).
+Tuple's own code is MIT licensed (see `LICENSE`).
 
 Bundled third-party software keeps its own licence: PostgreSQL (PostgreSQL Licence), PGlite (Apache-2.0),
 PostGIS (GPL-2.0-or-later, source at [postgis.net](https://postgis.net) and

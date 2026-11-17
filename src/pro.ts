@@ -1,4 +1,4 @@
-// PG Notebook Pro: one-time in-app purchase that unlocks every extension (PostGIS, pgvector, AGE, …).
+// Tuple Pro: one-time in-app purchase that unlocks every extension (PostGIS, pgvector, AGE, …).
 // The PostgreSQL core (all built-in types, functions, PL/pgSQL, notebooks, terminal) is free.
 import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases';
 import { h, icon, modal, native, toast } from './ui';

@@ -1,6 +1,6 @@
 {
   "appId": "com.heyobi.pgnotebook",
-  "appName": "PG Notebook",
+  "appName": "Tuple",
   "webDir": "dist",
   "ios": { "contentInset": "never", "scrollEnabled": true },
   "plugins": {

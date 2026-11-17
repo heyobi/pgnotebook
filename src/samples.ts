@@ -7,7 +7,7 @@ export interface Sample { key: string; title: string; subtitle: string; ext?: st
 export const CORE_SAMPLES: Sample[] = [
   {
     key: 'welcome',
-    title: 'Welcome to PG Notebook',
+    title: 'Welcome to Tuple',
     subtitle: 'Tables, joins, aggregates and a chart',
     cells: [
       ['md', '# Welcome\nThis is a real **PostgreSQL** server running on your iPhone — no network, no account.\n\nTap ▶ on a cell to run it, or **Run all** at the bottom. Results with numbers can be shown as a **Chart**.'],

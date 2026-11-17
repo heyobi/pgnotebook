@@ -22,6 +22,7 @@ import SAMPLE_OUTPUTS from './sample-outputs.json';
 import type { ExecOk } from './engine';
 type SavedOutput = ExecOk | PgError;
 import { terminalView } from './terminal';
+import { querySucceeded } from './review';
 import { confirmBox, dark, fmtDate, fmtMs, h, icon, modal, native, pickFile, promptBox, safeName, sheet, shareFile, toast } from './ui';
 
 const app = document.getElementById('app')!;
@@ -380,11 +381,11 @@ function databasesPage() {
       h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, d.name), h('div', { class: 'row-sub' }, `PostgreSQL ${d.version}${d.extensions.length ? ` · ${d.extensions.length} extension${d.extensions.length === 1 ? '' : 's'}` : ''}`)),
       d.id === cur?.id ? h('span', { class: 'badge on' }, 'Active') : icon('chevron')))),
     h('div', { class: 'actions' }, h('button', { class: 'btn primary', onclick: newDatabase }, icon('plus'), 'New database')),
-    h('h2', { class: 'section' }, 'PG Notebook'),
+    h('h2', { class: 'section' }, 'Tuple'),
     h('div', { class: 'list' },
       h('button', { class: 'row', onclick: () => requirePro().then(() => render()) },
         h('div', { class: 'row-icon' }, icon('spark')),
-        h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, isPro() ? 'Pro is active' : 'Unlock Pro'), h('div', { class: 'row-sub' }, isPro() ? 'Thank you for supporting PG Notebook' : 'All extensions · one-time purchase')),
+        h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, isPro() ? 'Pro is active' : 'Unlock Pro'), h('div', { class: 'row-sub' }, isPro() ? 'Thank you for supporting Tuple' : 'All extensions · one-time purchase')),
         isPro() ? h('span', { class: 'badge on' }, 'PRO') : icon('chevron'))),
     h('div', { class: 'info muted small' },
       h('div', {}, 'Open source (MIT): github.com/heyobi/pgnotebook'),
@@ -502,13 +503,14 @@ function notebookView(nb: Notebook) {
             const v = engine.active()?.version ?? 18;
             const na = wanted.filter((w) => !w.versions.includes(v));
             if (na.length) throw { message: `${na.map((n) => n.title).join(', ')} is not available on PostgreSQL ${v}`, hint: `Create a PostgreSQL ${na[0].versions[na[0].versions.length - 1]} database in Databases.` } as PgError;
-            if (!(await requirePro(`${wanted.map((w) => w.title).join(', ')} is part of Pro.`))) throw { message: 'Extensions need PG Notebook Pro' } as PgError;
+            if (!(await requirePro(`${wanted.map((w) => w.title).join(', ')} is part of Pro.`))) throw { message: 'Extensions need Tuple Pro' } as PgError;
             const missing = wanted.filter((w) => !engine.isLoaded(w.id));
             if (missing.length) { counter.textContent = `loading ${missing.map((m) => m.title).join(', ')}…`; await engine.loadExtensions(missing.map((m) => m.id)); }
           }
           const r = await engine.exec(text);
           renderResult(out, r);
           counter.textContent = fmtMs(r.ms);
+          querySucceeded();
           return true;
         } catch (e) {
           counter.textContent = 'error';

@@ -1,5 +1,5 @@
 // Persistent storage. On iOS: real files (Capacitor Filesystem).
-//  - Documents/Notebooks/*.ipynb  → visible in the Files app ("On My iPhone › PG Notebook")
+//  - Documents/Notebooks/*.ipynb  → visible in the Files app ("On My iPhone › Tuple")
 //  - Library/pgnotebook/          → database snapshot and preferences (not shown to the user)
 // In a desktop browser (development): IndexedDB.
 import { Capacitor } from '@capacitor/core';

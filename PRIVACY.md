@@ -1,8 +1,8 @@
-# PG Notebook — Privacy Policy
+# Tuple — Privacy Policy
 
 _Last updated: 17 November 2026_
 
-PG Notebook does not collect, transmit, sell or share any personal data.
+Tuple does not collect, transmit, sell or share any personal data.
 
 - **No account, no sign-in, no network.** The app makes no network requests. PostgreSQL runs on your device.
 - **Your data stays on your device.** Databases and notebooks are stored in the app's own storage on your iPhone

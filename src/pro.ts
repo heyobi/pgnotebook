@@ -24,16 +24,30 @@ function setPro(v: boolean) {
 
 export async function initPro() {
   if (!native) return; // desktop browser (development): everything unlocked via ?pro in the URL
-  try {
-    const { products } = await NativePurchases.getProducts({ productIdentifiers: [PRODUCT_ID], productType: PURCHASE_TYPE.INAPP });
-    price = products[0]?.priceString ?? '';
-  } catch { /* offline / not configured */ }
+  await refreshPrice();
   try {
     const { purchases } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.INAPP });
     if (purchases.some((p) => p.productIdentifier === PRODUCT_ID)) setPro(true);
   } catch { /* keep cached value */ }
 }
 if (!native && new URLSearchParams(location.search).has('pro')) setPro(true);
+
+/**
+ * Localised price from StoreKit. Read fresh each time the paywall opens: StoreKit can report the US price before the
+ * storefront is known (seen in TestFlight with a Turkish account: button said $4.99, the Apple sheet ₺249,99).
+ * If the storefront is not the US but the price is still in USD, show no price rather than a wrong one —
+ * Apple's purchase sheet always shows the real amount.
+ */
+async function refreshPrice() {
+  try {
+    const { products } = await NativePurchases.getProducts({ productIdentifiers: [PRODUCT_ID], productType: PURCHASE_TYPE.INAPP });
+    const p = products[0];
+    let country = '';
+    try { country = (await NativePurchases.getStorefront()).countryCode; } catch { /* older iOS */ }
+    const mismatch = !!p && p.currencyCode === 'USD' && !!country && !['USA', 'US'].includes(country);
+    price = p && !mismatch ? p.priceString : '';
+  } catch { /* offline / not configured */ }
+}
 
 async function buy(): Promise<boolean> {
   if (!native) { setPro(true); return true; }
@@ -75,6 +89,7 @@ export function requirePro(reason?: string): Promise<boolean> {
       if (await buy()) { close(); finish(true); toast('Pro unlocked — thank you!'); }
       buyBtn.removeAttribute('disabled');
     } }, price ? `Unlock Pro · ${price}` : 'Unlock Pro');
+    if (native) void refreshPrice().then(() => { if (!buyBtn.hasAttribute('disabled')) buyBtn.textContent = price ? `Unlock Pro · ${price}` : 'Unlock Pro'; });
     const content = h('div', { class: 'paywall' },
       h('div', { class: 'pw-badge' }, 'PRO'),
       h('h1', {}, 'Every extension, unlocked'),

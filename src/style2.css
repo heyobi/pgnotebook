@@ -147,3 +147,6 @@ td.geo { color: #22c55e; }
 .i-wrench { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M14.5 3.5a5 5 0 0 0-5.8 6.7L3.5 15.4a2 2 0 0 0 2.8 2.8l5.2-5.2a5 5 0 0 0 6.7-5.8l-3 3-2.5-.5-.5-2.5z'/%3E%3C/svg%3E"); }
 .i-check { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E"); }
 .i-close { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E"); width: 16px; height: 16px; }
+.preview-banner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); margin-bottom: 12px; }
+.nb-title.static { padding: 6px 2px 10px; }
+.run.ghost { background: var(--surface-2); color: var(--muted); }

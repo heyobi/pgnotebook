@@ -18,6 +18,9 @@ import { deleteNotebook, fromIpynb, fromSql, loadNotebooks, saveNotebook, toIpyn
 import { initPro, isPro, onPro, requirePro } from './pro';
 import { errorBox, renderResult } from './results';
 import { CORE_SAMPLES, extensionSamples, sampleNotebook, type Sample } from './samples';
+import SAMPLE_OUTPUTS from './sample-outputs.json';
+import type { ExecOk } from './engine';
+type SavedOutput = ExecOk | PgError;
 import { terminalView } from './terminal';
 import { confirmBox, dark, fmtDate, fmtMs, h, icon, modal, native, pickFile, promptBox, safeName, sheet, shareFile, toast } from './ui';
 
@@ -30,7 +33,7 @@ const editors = new Set<EditorView>();
 let termEl: HTMLElement | null = null;
 
 type Tab = 'notebooks' | 'terminal' | 'extensions' | 'databases';
-type Route = { tab: Tab; notebook?: string };
+type Route = { tab: Tab; notebook?: string; preview?: string };
 let route: Route = { tab: 'notebooks' };
 
 function sqlLang() {
@@ -80,7 +83,12 @@ function render() {
   editors.clear();
   hideAccessory();
   app.replaceChildren();
-  document.body.classList.toggle('in-notebook', !!route.notebook);
+  document.body.classList.toggle('in-notebook', !!route.notebook || !!route.preview);
+  if (route.preview) {
+    const s = allSamples().find((x) => x.key === route.preview);
+    if (s) { app.append(previewView(s)); return; }
+    route = { tab: route.tab };
+  }
   if (route.notebook) {
     const nb = notebooks.find((n) => n.id === route.notebook);
     if (nb) { app.append(notebookView(nb)); return; }
@@ -103,6 +111,63 @@ async function newNotebook(cells?: Cell[], title = 'Untitled notebook') {
   await saveNotebook(nb);
   notebooks.unshift(nb);
   go({ tab: 'notebooks', notebook: nb.id });
+}
+
+const allSamples = () => [...CORE_SAMPLES, ...extensionSamples()];
+
+/** Read-only example with saved outputs. Anyone can look; running needs Pro for extension examples. */
+function previewView(s: Sample) {
+  const outputs = (SAMPLE_OUTPUTS as Record<string, (SavedOutput | null)[]>)[s.key] ?? [];
+  const e = s.ext ? extById(s.ext) : undefined;
+  const locked = !!e && !isPro();
+  const cells = s.cells.map(([t, src], i) => {
+    if (t === 'md') return h('div', { class: 'cell md-cell' }, h('div', { class: 'md', html: marked.parse(src) as string }));
+    const ed = h('div', { class: 'editor' });
+    const view = new EditorView({
+      parent: ed,
+      state: EditorState.create({
+        doc: src,
+        extensions: [basicSetup, sql({ dialect: PostgreSQL }), EditorView.lineWrapping, EditorState.readOnly.of(true), EditorView.editable.of(false),
+          EditorView.theme({ '&': { fontSize: '15px' }, '.cm-content': { fontFamily: 'var(--mono)', padding: '6px 0' } }), dark() ? oneDark : []],
+      }),
+    });
+    editors.add(view);
+    const out = h('div', { class: 'out' });
+    const o = outputs[i];
+    if (o && 'results' in o) renderResult(out, o);
+    else if (o && 'message' in o) out.append(errorBox(o));
+    return h('div', { class: 'cell sql' },
+      h('div', { class: 'cell-head' }, h('span', { class: 'run ghost' }, icon('play')), h('span', { class: 'cell-meta' }, o && 'ms' in o ? `${fmtMs(o.ms)} · saved output` : 'saved output')),
+      ed, out);
+  });
+  const use = async () => {
+    if (e) {
+      const v = engine.active()?.version ?? 18;
+      if (!e.versions.includes(v)) { toast(`${e.title} needs PostgreSQL ${e.versions.join(' or ')}. Switch database in Databases.`, 'err'); return; }
+      if (!(await requirePro(`${e.title} is part of Pro.`))) return;
+    }
+    const nb = sampleNotebook(s, uid());
+    await newNotebook(nb.cells, nb.title);
+  };
+  return h('div', { class: 'page nb' },
+    h('header', { class: 'bar' },
+      h('button', { class: 'back', onclick: () => go({ tab: route.tab }) }, icon('back'), route.tab === 'extensions' ? 'Extensions' : 'Notebooks'),
+      h('div', { class: 'grow' }),
+      h('span', { class: 'pill' }, 'Preview')),
+    h('div', { class: 'nb-title static' }, s.title),
+    h('div', { class: `preview-banner${e ? ` cat-${slug(e.category)}` : ''}` },
+      e ? h('div', { class: 'row-icon' }, icon(catIcon(e.category))) : h('div', { class: 'row-icon' }, icon('doc')),
+      h('div', { class: 'grow' },
+        h('b', {}, e ? `${e.title} example` : 'Example notebook'),
+        h('div', { class: 'small muted' }, locked ? 'These are saved results. Unlock Pro to run and edit it on your own database.' : 'These are saved results. Open it to run and edit the cells.')),
+      locked && h('span', { class: 'pro-tag' }, 'PRO')),
+    h('div', { class: 'cells' }, cells),
+    h('div', { class: 'nb-foot' },
+      h('button', { class: 'btn primary big', onclick: use }, icon('play'), locked ? 'Unlock Pro & run' : 'Open & run')));
+}
+
+function openPreview(s: Sample) {
+  go({ tab: route.tab, preview: s.key });
 }
 
 async function openSample(s: Sample) {
@@ -148,12 +213,12 @@ function homePage() {
           icon('chevron'))))
       : h('div', { class: 'empty' }, 'No notebooks yet. Start with an example below.'),
     h('h2', { class: 'section' }, 'Learn PostgreSQL'),
-    h('div', { class: 'cards' }, CORE_SAMPLES.map((s) => h('button', { class: 'card', onclick: () => openSample(s) },
+    h('div', { class: 'cards' }, CORE_SAMPLES.map((s) => h('button', { class: 'card', onclick: () => openPreview(s) },
       h('div', { class: 'card-title' }, s.title), h('div', { class: 'card-sub' }, s.subtitle)))),
     h('h2', { class: 'section' }, 'Extension examples', !isPro() && h('span', { class: 'pro-tag' }, 'PRO')),
     h('div', { class: 'hscroll' }, extSamples.map((s) => {
       const e = extById(s.ext!)!;
-      return h('button', { class: `card ext-card cat-${slug(e.category)}`, onclick: () => openSample(s) },
+      return h('button', { class: `card ext-card cat-${slug(e.category)}`, onclick: () => openPreview(s) },
         h('div', { class: 'ext-ico' }, icon(catIcon(e.category))),
         h('div', { class: 'card-title' }, e.title), h('div', { class: 'card-sub' }, e.tagline));
     })));
@@ -265,7 +330,7 @@ function extDetail(e: ExtInfo, redraw: () => void) {
       e.requires && h('div', {}, h('span', {}, 'Requires'), h('b', {}, e.requires.join(', ')))),
     !available && h('div', { class: 'error-box' }, `Not available on PostgreSQL ${v}. Create a PostgreSQL ${e.versions[e.versions.length - 1]} database in Databases to use it.`),
     actionBtn,
-    sample && h('button', { class: 'btn big', onclick: async () => { close(); await openSample(sample); } }, icon('doc'), 'Open example notebook'));
+    sample && h('button', { class: 'btn big', onclick: () => { close(); openPreview(sample); } }, icon('doc'), 'See example notebook'));
   const close = modal(content);
 }
 
@@ -561,7 +626,7 @@ async function boot() {
   }
   render();
   if (native) SplashScreen.hide().catch(() => {});
-  void initPro().then(() => route.tab !== 'terminal' && !route.notebook && render());
+  void initPro().then(() => route.tab !== 'terminal' && !route.notebook && !route.preview && render());
   engine.start().catch((e) => { console.error(e); toast('PostgreSQL did not start — see Databases', 'err'); });
 }
 

@@ -158,3 +158,6 @@ td.geo { color: #22c55e; }
 .field-hint { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 6px; text-align: left; }
 .shake { animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.kb-open .tabbar { display: none; }
+body.kb-open:not(.in-notebook) .page { padding-bottom: 16px; }
+.kb-open .term-screen { max-height: calc(100dvh - 230px); }

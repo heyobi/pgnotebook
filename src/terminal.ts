@@ -181,7 +181,7 @@ export function terminalView(): HTMLElement {
 
   const ins = (t: string) => { const s = input.selectionStart, e = input.selectionEnd; input.setRangeText(t, s, e, 'end'); input.focus(); autosize(); };
   const keys = h('div', { class: 'term-keys', onmousedown: (e: Event) => e.preventDefault() },
-    [['↑', () => recall(-1)], ['↓', () => recall(1)], ['\\', () => ins('\\')], [';', () => ins(';')], ['*', () => ins('*')], ['(', () => ins('(')], [')', () => ins(')')], ["'", () => ins("'")], ['=', () => ins('=')], [',', () => ins(',')], ['\\dt', () => { input.value = '\\dt'; void submit(); }], ['\\d', () => ins('\\d ')], ['\\dx', () => { input.value = '\\dx'; void submit(); }], ['\\?', () => { input.value = '\\?'; void submit(); }]]
+    [['⌄', () => input.blur()], ['↑', () => recall(-1)], ['↓', () => recall(1)], ['\\', () => ins('\\')], [';', () => ins(';')], ['*', () => ins('*')], ['(', () => ins('(')], [')', () => ins(')')], ["'", () => ins("'")], ['=', () => ins('=')], [',', () => ins(',')], ['\\dt', () => { input.value = '\\dt'; void submit(); }], ['\\d', () => ins('\\d ')], ['\\dx', () => { input.value = '\\dx'; void submit(); }], ['\\?', () => { input.value = '\\?'; void submit(); }]]
       .map(([t, fn]) => h('button', { onclick: fn as () => void }, t as string)));
 
   print(`Tuple terminal — ${engine.getState().version?.split(' on ')[0] ?? 'PostgreSQL'}\nType \\? for help. End SQL with ;`, 'muted');

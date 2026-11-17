@@ -614,7 +614,20 @@ window.visualViewport?.addEventListener('resize', placeAccessory);
 window.visualViewport?.addEventListener('scroll', placeAccessory);
 
 // ---------------- boot ----------------
+// Hide the tab bar while the keyboard is up: it only takes space above the keys.
+function trackKeyboard() {
+  const set = (open: boolean) => document.body.classList.toggle('kb-open', open);
+  if (native) {
+    Keyboard.addListener('keyboardWillShow', () => set(true));
+    Keyboard.addListener('keyboardWillHide', () => set(false));
+  } else {
+    document.addEventListener('focusin', (e) => set(!!(e.target as HTMLElement).closest('input, textarea, .cm-content')));
+    document.addEventListener('focusout', () => setTimeout(() => set(!!document.activeElement?.closest('input, textarea, .cm-content')), 50));
+  }
+}
+
 async function boot() {
+  trackKeyboard();
   if (native) {
     Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
     StatusBar.setStyle({ style: dark() ? Style.Dark : Style.Light }).catch(() => {});

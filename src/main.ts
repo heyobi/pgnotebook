@@ -646,7 +646,7 @@ async function boot() {
   trackKeyboard();
   if (native) {
     Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
-    StatusBar.setStyle({ style: dark() ? Style.Dark : Style.Light }).catch(() => {});
+    StatusBar.setStyle({ style: Style.Default }).catch(() => {}); // follows light/dark mode by itself
   }
   notebooks = await loadNotebooks();
   if (!notebooks.length) {

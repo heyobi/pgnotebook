@@ -178,3 +178,6 @@ body.kb-open:not(.in-notebook) .page { padding-bottom: 16px; }
 /* terminal colours: light by default, dark in dark mode */
 :root { --t-bg: #fbfbfd; --t-fg: #1d2330; --t-line: #dfe2ea; --t-echo: #1f5fd6; --t-err: #c62828; --t-ok: #17803d; --t-muted: #6b7385; --t-input: #0b0d12; --t-key: #f0f2f6; }
 @media (prefers-color-scheme: dark) { :root { --t-bg: #0a0c10; --t-fg: #d7dde8; --t-line: #1f2633; --t-echo: #8fb4ff; --t-err: #ff8787; --t-ok: #7ee2a8; --t-muted: #7a8597; --t-input: #ffffff; --t-key: #161b24; } }
+/* Confirmation dialogs and action sheets always sit above full-screen modals (extension details, paywall). */
+.sheet-back { z-index: 65; }
+.toast { z-index: 70; }

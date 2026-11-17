@@ -315,11 +315,12 @@ function extDetail(e: ExtInfo, redraw: () => void) {
   const actionBtn = h('button', { class: `btn big ${installed ? 'danger' : 'primary'}`, disabled: !available }, installed ? 'Remove from database' : isPro() ? 'Install' : 'Install · Pro');
   actionBtn.onclick = async () => {
     if (!installed && !(await requirePro(`${e.title} is part of Pro.`))) return;
+    // Ask before touching the button, so "Removing…" only appears after the user confirmed.
+    if (installed && !(await confirmBox(`Remove ${e.title}?`, 'DROP EXTENSION … CASCADE also drops columns and objects that use it.', 'Remove', true))) return;
     actionBtn.setAttribute('disabled', '');
     actionBtn.textContent = installed ? 'Removing…' : e.sizeKb > 5000 ? 'Installing… (large, a few seconds)' : 'Installing…';
     try {
       if (installed) {
-        if (!(await confirmBox(`Remove ${e.title}?`, 'DROP EXTENSION … CASCADE also drops columns and objects that use it.', 'Remove', true))) { close(); return; }
         await engine.removeExtension(e.id);
         toast(`${e.title} removed`);
       } else {

@@ -37,26 +37,26 @@ export const EXTENSIONS: ExtInfo[] = [
     tagline: 'Maps, geometry and spatial queries',
     about: 'Adds geometry and geography types, 1000+ spatial functions (distance, area, buffers, intersections, transformations) and spatial indexes. Results with geometry columns can be shown on a map.',
     example: {
-      title: 'PostGIS: cities on a map',
+      title: 'PostGIS: gis_cities on a map',
       cells: [
         ['md', '# PostGIS\nGeometry columns can be shown on a **map**: run a cell, then tap **Map** above the result.'],
         ['sql', 'CREATE EXTENSION IF NOT EXISTS postgis;'],
-        ['sql', `CREATE TABLE IF NOT EXISTS cities (name text PRIMARY KEY, geom geometry(Point, 4326));
-INSERT INTO cities VALUES
+        ['sql', `DROP TABLE IF EXISTS gis_cities CASCADE;
+CREATE TABLE gis_cities (name text PRIMARY KEY, geom geometry(Point, 4326));
+INSERT INTO gis_cities VALUES
   ('Istanbul', 'POINT(28.98 41.01)'), ('Ankara', 'POINT(32.86 39.93)'), ('Izmir', 'POINT(27.14 38.42)'),
   ('Berlin', 'POINT(13.40 52.52)'), ('London', 'POINT(-0.13 51.51)'), ('New York', 'POINT(-74.01 40.71)'),
-  ('Tokyo', 'POINT(139.69 35.69)'), ('Cairo', 'POINT(31.24 30.04)'), ('São Paulo', 'POINT(-46.63 -23.55)')
-ON CONFLICT DO NOTHING;`],
-        ['sql', 'SELECT name, geom FROM cities;'],
+  ('Tokyo', 'POINT(139.69 35.69)'), ('Cairo', 'POINT(31.24 30.04)'), ('São Paulo', 'POINT(-46.63 -23.55)');`],
+        ['sql', 'SELECT name, geom FROM gis_cities;'],
         ['md', 'Distances on the globe use the `geography` type:'],
         ['sql', `SELECT a.name AS from_city, b.name AS to_city,
        round((ST_Distance(a.geom::geography, b.geom::geography) / 1000)::numeric) AS km
-FROM cities a JOIN cities b ON a.name < b.name
+FROM gis_cities a JOIN gis_cities b ON a.name < b.name
 ORDER BY km LIMIT 10;`],
         ['md', 'A 1000 km circle around Istanbul and the cities inside it:'],
         ['sql', `SELECT 'Istanbul +1000 km' AS name, ST_Buffer('POINT(28.98 41.01)'::geography, 1000000)::geometry AS geom
 UNION ALL
-SELECT name, geom FROM cities WHERE ST_DWithin(geom::geography, 'POINT(28.98 41.01)'::geography, 1000000);`],
+SELECT name, geom FROM gis_cities WHERE ST_DWithin(geom::geography, 'POINT(28.98 41.01)'::geography, 1000000);`],
       ],
     },
   },
@@ -70,19 +70,19 @@ SELECT name, geom FROM cities WHERE ST_DWithin(geom::geography, 'POINT(28.98 41.
       cells: [
         ['md', '# pgvector\nEmbeddings are lists of numbers that place similar things close together. These are tiny hand-made 4-D ones. Tap **Plot** above a result to see vectors in 2-D.'],
         ['sql', `CREATE EXTENSION IF NOT EXISTS vector;
-CREATE TABLE IF NOT EXISTS words (word text PRIMARY KEY, embedding vector(4));
-INSERT INTO words VALUES
+DROP TABLE IF EXISTS vec_words CASCADE;
+CREATE TABLE vec_words (word text PRIMARY KEY, embedding vector(4));
+INSERT INTO vec_words VALUES
   ('cat', '[0.9,0.8,0.1,0.0]'), ('dog', '[0.85,0.9,0.15,0.05]'), ('kitten', '[0.95,0.7,0.05,0.0]'),
   ('car', '[0.1,0.05,0.9,0.8]'), ('truck', '[0.05,0.1,0.95,0.9]'), ('bike', '[0.2,0.1,0.7,0.6]'),
-  ('apple', '[0.3,0.1,0.1,0.95]'), ('banana', '[0.25,0.15,0.05,0.9]')
-ON CONFLICT DO NOTHING;`],
-        ['sql', 'SELECT word, embedding FROM words;'],
+  ('apple', '[0.3,0.1,0.1,0.95]'), ('banana', '[0.25,0.15,0.05,0.9]');`],
+        ['sql', 'SELECT word, embedding FROM vec_words;'],
         ['md', 'Five nearest neighbours of **cat** by cosine distance (`<=>`):'],
-        ['sql', `SELECT word, round((embedding <=> (SELECT embedding FROM words WHERE word = 'cat'))::numeric, 4) AS distance
-FROM words WHERE word <> 'cat'
+        ['sql', `SELECT word, round((embedding <=> (SELECT embedding FROM vec_words WHERE word = 'cat'))::numeric, 4) AS distance
+FROM vec_words WHERE word <> 'cat'
 ORDER BY distance LIMIT 5;`],
-        ['sql', `CREATE INDEX IF NOT EXISTS words_hnsw ON words USING hnsw (embedding vector_cosine_ops);
-EXPLAIN SELECT word FROM words ORDER BY embedding <=> '[0.1,0.1,0.9,0.85]' LIMIT 3;`],
+        ['sql', `CREATE INDEX IF NOT EXISTS vec_words_hnsw ON vec_words USING hnsw (embedding vector_cosine_ops);
+EXPLAIN SELECT word FROM vec_words ORDER BY embedding <=> '[0.1,0.1,0.9,0.85]' LIMIT 3;`],
       ],
     },
   },
@@ -128,10 +128,11 @@ $$) AS (reachable agtype);`],
     about: 'Trigram similarity for typo-tolerant search, plus GIN/GiST indexes that speed up LIKE, ILIKE and regex searches.',
     example: { title: 'pg_trgm: typo-tolerant search', cells: [
       ['sql', `CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE TABLE IF NOT EXISTS products (name text);
-INSERT INTO products VALUES ('iPhone'), ('iPad'), ('MacBook Pro'), ('Magic Mouse'), ('AirPods');`],
+DROP TABLE IF EXISTS trgm_products CASCADE;
+CREATE TABLE trgm_products (name text);
+INSERT INTO trgm_products VALUES ('iPhone'), ('iPad'), ('MacBook Pro'), ('Magic Mouse'), ('AirPods');`],
       ['sql', `SELECT name, round(similarity(name, 'macbok')::numeric, 2) AS score
-FROM products ORDER BY score DESC LIMIT 3;`],
+FROM trgm_products ORDER BY score DESC LIMIT 3;`],
     ] },
   },
   {
@@ -149,9 +150,10 @@ FROM products ORDER BY score DESC LIMIT 3;`],
     id: 'ltree', sql: ['ltree'], title: 'ltree', category: 'Data types', sizeKb: 40, license: 'PostgreSQL', versions: ALL3,
     tagline: 'Tree paths like a.b.c', about: 'Hierarchical labels with fast ancestor/descendant queries.',
     example: { title: 'ltree: categories', cells: [['sql', `CREATE EXTENSION IF NOT EXISTS ltree;
-CREATE TABLE IF NOT EXISTS cats (path ltree);
-INSERT INTO cats VALUES ('shop'), ('shop.phones'), ('shop.phones.iphone'), ('shop.laptops');
-SELECT path FROM cats WHERE path <@ 'shop.phones';`]] },
+DROP TABLE IF EXISTS ltree_cats CASCADE;
+CREATE TABLE ltree_cats (path ltree);
+INSERT INTO ltree_cats VALUES ('shop'), ('shop.phones'), ('shop.phones.iphone'), ('shop.laptops');
+SELECT path FROM ltree_cats WHERE path <@ 'shop.phones';`]] },
   },
   { id: 'citext', sql: ['citext'], title: 'citext', category: 'Data types', sizeKb: 20, license: 'PostgreSQL', versions: ALL3, tagline: 'Case-insensitive text', about: 'A text type that compares case-insensitively — handy for e-mail addresses.',
     example: { title: 'citext', cells: [['sql', `CREATE EXTENSION IF NOT EXISTS citext;\nSELECT 'Ada@Example.com'::citext = 'ada@example.com' AS same;`]] } },

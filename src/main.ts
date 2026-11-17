@@ -717,7 +717,7 @@ async function boot() {
 }
 
 // Automated checks (WebKit via Playwright) reach the engine through this hook; only with ?selftest in the URL.
-if (new URLSearchParams(location.search).has('selftest')) Object.assign(window, { __engine: engine, __lessons: LESSONS });
+if (new URLSearchParams(location.search).has('selftest')) Object.assign(window, { __engine: engine, __lessons: LESSONS, __samples: [...CORE_SAMPLES, ...extensionSamples()] });
 
 engine.onState((s) => { if (s.status !== 'starting' && route.tab === 'databases' && !route.notebook) render(); });
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { applyTheme(); if (route.tab !== 'terminal') render(); });

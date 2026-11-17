@@ -287,7 +287,9 @@ function extensionsPage() {
   };
   search.oninput = () => { q = search.value.trim().toLowerCase(); draw(); };
   search.setAttribute('enterkeyhint', 'search');
-  search.onkeydown = (e) => { if (e.key === 'Enter') search.blur(); };
+  search.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); search.blur(); } };
+  // Inside a form iOS labels the return key "Search"; submitting just closes the keyboard.
+  const searchForm = h('form', { action: '', onsubmit: (e: Event) => { e.preventDefault(); search.blur(); } }, search);
   const off = engine.onMeta(() => draw());
   const offPro = onPro(() => render());
   new MutationObserver(() => { if (!listEl.isConnected) { off(); offPro(); } }).observe(document.body, { childList: true, subtree: true });
@@ -297,7 +299,7 @@ function extensionsPage() {
     !isPro() && h('button', { class: 'pro-banner', onclick: () => requirePro().then(() => render()) },
       h('div', {}, h('b', {}, t('Unlock every extension')), h('div', { class: 'small' }, t('PostGIS, pgvector, Apache AGE and 30+ more · one-time purchase'))),
       h('span', { class: 'pro-tag big' }, 'PRO')),
-    search,
+    searchForm,
     listEl);
 }
 
@@ -665,6 +667,11 @@ function dismissKeyboardOnTapOutside() {
     if (target.closest('input, textarea, .cm-editor, .accessory, .term-keys, .term-row, .dialog, .sheet')) return;
     active.blur();
   }, true);
+  // Scrolling the page also puts the keyboard away (as in iOS lists), except while editing code or terminal input.
+  document.addEventListener('touchmove', () => {
+    const a = document.activeElement as HTMLElement | null;
+    if (a && a.matches('input.search, input.field')) a.blur();
+  }, { passive: true });
 }
 
 function trackKeyboard() {

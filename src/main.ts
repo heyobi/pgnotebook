@@ -138,7 +138,7 @@ function previewView(s: Sample) {
     if (o && 'results' in o) renderResult(out, o);
     else if (o && 'message' in o) out.append(errorBox(o));
     return h('div', { class: 'cell sql' },
-      h('div', { class: 'cell-head' }, h('span', { class: 'run ghost' }, icon('play')), h('span', { class: 'cell-meta' }, o && 'ms' in o ? `${fmtMs(o.ms)} · saved output` : 'saved output')),
+      h('div', { class: 'cell-head' }, h('button', { class: 'run ghost', 'aria-label': 'Run', onclick: () => void use() }, icon('play')), h('span', { class: 'cell-meta' }, o && 'ms' in o ? `${fmtMs(o.ms)} · saved output` : 'saved output')),
       ed, out);
   });
   const use = async () => {
@@ -161,13 +161,15 @@ function previewView(s: Sample) {
       h('div', { class: 'grow' },
         h('b', {}, e ? `${e.title} example` : 'Example notebook'),
         h('div', { class: 'small muted' }, locked ? 'These are saved results. Unlock Pro to run and edit it on your own database.' : 'These are saved results. Open it to run and edit the cells.')),
-      locked && h('span', { class: 'pro-tag' }, 'PRO')),
+      h('button', { class: 'btn primary', onclick: () => void use() }, locked ? 'Unlock' : 'Run')),
     h('div', { class: 'cells' }, cells),
     h('div', { class: 'nb-foot' },
       h('button', { class: 'btn primary big', onclick: use }, icon('play'), locked ? 'Unlock Pro & run' : 'Open & run')));
 }
 
+/** Free examples, and every example for Pro users, open as a runnable notebook. Others see the saved-output preview. */
 function openPreview(s: Sample) {
+  if (!s.ext || isPro()) { void openSample(s); return; }
   go({ tab: route.tab, preview: s.key });
 }
 

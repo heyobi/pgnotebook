@@ -18,6 +18,7 @@ import { deleteNotebook, fromIpynb, fromSql, loadNotebooks, saveNotebook, toIpyn
 import { initPro, isPro, onPro, requirePro } from './pro';
 import { errorBox, renderResult } from './results';
 import { CORE_SAMPLES, extensionSamples, sampleNotebook, type Sample } from './samples';
+import { LESSONS } from './lessons';
 import SAMPLE_OUTPUTS from './sample-outputs.json';
 import type { ExecOk } from './engine';
 type SavedOutput = ExecOk | PgError;
@@ -180,6 +181,9 @@ async function openSample(s: Sample) {
     if (!e.versions.includes(v)) { toast(`${e.title} is not available on PostgreSQL ${v}. Switch database in Databases.`, 'err'); return; }
     if (!(await requirePro(`${e.title} is part of Pro.`))) return;
   }
+  // Re-opening a lesson continues the copy you already have instead of making another one.
+  const existing = s.key.startsWith('learn-') ? notebooks.find((n) => n.title === s.title) : undefined;
+  if (existing) { go({ tab: 'notebooks', notebook: existing.id }); return; }
   const nb = sampleNotebook(s, uid());
   await newNotebook(nb.cells, nb.title);
 }
@@ -215,8 +219,20 @@ function homePage() {
             h('div', { class: 'row-sub' }, `${nb.cells.length} cell${nb.cells.length === 1 ? '' : 's'} · ${fmtDate(nb.updated)}`)),
           icon('chevron'))))
       : h('div', { class: 'empty' }, 'No notebooks yet. Start with an example below.'),
-    h('h2', { class: 'section' }, 'Learn PostgreSQL'),
-    h('div', { class: 'cards' }, CORE_SAMPLES.map((s) => h('button', { class: 'card', onclick: () => openPreview(s) },
+    h('h2', { class: 'section' }, 'Learn PostgreSQL', h('span', { class: 'section-note' }, `${LESSONS.length} lessons · free`)),
+    h('p', { class: 'muted pad' }, 'A short course from your first SELECT to window functions, indexes and transactions. Each lesson explains, runs and ends with an exercise.'),
+    h('div', { class: 'list lessons' }, LESSONS.map((l) => {
+      const started = notebooks.some((n) => n.title === l.title);
+      return h('button', { class: 'row', onclick: () => openSample(l) },
+        h('div', { class: `lesson-n ${started ? 'started' : ''}` }, String(l.n)),
+        h('div', { class: 'row-main' },
+          h('div', { class: 'row-title' }, l.title),
+          h('div', { class: 'row-sub' }, `${l.subtitle}`),
+          h('div', { class: 'lesson-meta' }, h('span', { class: `lvl lvl-${l.level.toLowerCase()}` }, l.level), `${l.minutes} min${started ? ' · in your notebooks' : ''}`)),
+        icon('chevron'));
+    })),
+    h('h3', { class: 'group' }, 'More examples'),
+    h('div', { class: 'cards' }, CORE_SAMPLES.slice(1).map((s) => h('button', { class: 'card', onclick: () => openPreview(s) },
       h('div', { class: 'card-title' }, s.title), h('div', { class: 'card-sub' }, s.subtitle)))),
     h('h2', { class: 'section' }, 'Extension examples', !isPro() && h('span', { class: 'pro-tag' }, 'PRO')),
     h('div', { class: 'hscroll' }, extSamples.map((s) => {
@@ -537,7 +553,7 @@ function notebookView(nb: Notebook) {
         editor.focus();
       };
       done.onclick = () => { view.innerHTML = render(); view.classList.remove('hidden'); ed.classList.add('hidden'); done.classList.add('hidden'); hideAccessory(); };
-      view.onclick = edit;
+      view.onclick = (e) => { if (!(e.target as HTMLElement).closest('details, a')) edit(); };
       ui.focus = edit;
       ui.el = h('div', { class: 'cell md-cell' },
         h('div', { class: 'cell-head' }, h('span', { class: 'cell-meta' }, 'Text'), h('div', { class: 'grow' }), done,
@@ -650,7 +666,7 @@ async function boot() {
 }
 
 // Automated checks (WebKit via Playwright) reach the engine through this hook; only with ?selftest in the URL.
-if (new URLSearchParams(location.search).has('selftest')) (window as unknown as Record<string, unknown>).__engine = engine;
+if (new URLSearchParams(location.search).has('selftest')) Object.assign(window, { __engine: engine, __lessons: LESSONS });
 
 engine.onState((s) => { if (s.status !== 'starting' && route.tab === 'databases' && !route.notebook) render(); });
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => route.tab !== 'terminal' && render());

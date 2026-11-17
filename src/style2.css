@@ -154,7 +154,7 @@ td.geo { color: #22c55e; }
 /* Long values (hashes, JSON) must scroll inside their table, never widen the page. */
 .cells, .out, .result, .chart, .ext-detail { grid-template-columns: minmax(0, 1fr); }
 .cells > *, .out > *, .result > *, .cell, .table-wrap, .map { min-width: 0; max-width: 100%; }
-.page { overflow-x: hidden; }
+.page { overflow-x: clip; }
 .field-hint { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 6px; text-align: left; }
 .shake { animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }

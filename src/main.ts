@@ -398,7 +398,7 @@ function databasesPage() {
 async function newDatabase() {
   let n = engine.databases().length + 1;
   while (engine.databases().some((d) => d.name === `db${n}`)) n++;
-  const name = await promptBox('New database', 'Database name', `db${n}`, 'Next');
+  const name = await promptBox('New database', `Name (empty = db${n})`, '', 'Next', `db${n}`);
   if (!name) return;
   sheet('PostgreSQL version', PG_VERSIONS.map((p) => ({
     label: `${p.label} — ${p.note}`,

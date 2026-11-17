@@ -1,15 +1,16 @@
-// Built-in example notebooks. They generate their own data, so nothing is downloaded.
+// Built-in example notebooks for core PostgreSQL (free). Extension examples live in extensions.ts.
 import type { Notebook } from './notebook';
+import { EXTENSIONS } from './extensions';
 
-type Sample = { key: string; title: string; subtitle: string; needs?: string[]; cells: [ 'md' | 'sql', string ][] };
+export interface Sample { key: string; title: string; subtitle: string; ext?: string; cells: ['md' | 'sql', string][] }
 
-export const SAMPLES: Sample[] = [
+export const CORE_SAMPLES: Sample[] = [
   {
     key: 'welcome',
     title: 'Welcome to PG Notebook',
-    subtitle: 'Tables, joins and aggregates in 5 cells',
+    subtitle: 'Tables, joins, aggregates and a chart',
     cells: [
-      ['md', '# Welcome\nThis is a real **PostgreSQL 18** server running on your iPhone — no network, no account.\n\nTap ▶ on a cell to run it, or **Run all** at the bottom. Everything you create is saved on the device.'],
+      ['md', '# Welcome\nThis is a real **PostgreSQL** server running on your iPhone — no network, no account.\n\nTap ▶ on a cell to run it, or **Run all** at the bottom. Results with numbers can be shown as a **Chart**.'],
       ['sql', `CREATE TABLE IF NOT EXISTS customers (
   id    serial PRIMARY KEY,
   name  text NOT NULL,
@@ -27,18 +28,17 @@ CREATE TABLE IF NOT EXISTS orders (
 INSERT INTO orders (customer_id, amount, ordered_at)
 SELECT 1 + (i % 4), round((random() * 200)::numeric, 2), current_date - (i % 30)
 FROM generate_series(1, 200) AS i;`],
-      ['sql', `SELECT c.name, c.city, count(o.*) AS orders, sum(o.amount) AS total
+      ['sql', `SELECT c.name, count(o.*) AS orders, sum(o.amount) AS total
 FROM customers c
 JOIN orders o ON o.customer_id = c.id
 GROUP BY c.id
 ORDER BY total DESC;`],
-      ['md', '## Window functions\nRunning total of revenue per day:'],
+      ['md', '## Window functions\nDaily revenue and a running total — tap **Chart** to see it as a line:'],
       ['sql', `SELECT ordered_at, sum(amount) AS revenue,
        sum(sum(amount)) OVER (ORDER BY ordered_at) AS running_total
 FROM orders
 GROUP BY ordered_at
-ORDER BY ordered_at
-LIMIT 10;`],
+ORDER BY ordered_at;`],
     ],
   },
   {
@@ -61,79 +61,66 @@ WHERE payload @> '{"tags":["ios"]}';`],
     ],
   },
   {
-    key: 'postgis',
-    title: 'PostGIS basics',
-    subtitle: 'Points, distances and buffers',
-    needs: ['postgis'],
+    key: 'recursive',
+    title: 'Recursive queries',
+    subtitle: 'Org charts and sequences with WITH RECURSIVE',
     cells: [
-      ['md', '# PostGIS\nTurn on **PostGIS** in *Extensions* first (it is 20 MB, so it is off by default).'],
-      ['sql', `CREATE EXTENSION IF NOT EXISTS postgis;
-SELECT postgis_version();`],
-      ['sql', `CREATE TABLE IF NOT EXISTS cities (name text, geom geography(Point, 4326));
-INSERT INTO cities VALUES
-  ('Istanbul', 'POINT(28.9784 41.0082)'),
-  ('Ankara',   'POINT(32.8597 39.9334)'),
-  ('Izmir',    'POINT(27.1428 38.4237)'),
-  ('Berlin',   'POINT(13.4050 52.5200)'),
-  ('London',   'POINT(-0.1276 51.5072)');`],
-      ['md', 'Distance between every pair of cities, in kilometres:'],
-      ['sql', `SELECT a.name AS from_city, b.name AS to_city,
-       round((ST_Distance(a.geom, b.geom) / 1000)::numeric) AS km
-FROM cities a JOIN cities b ON a.name < b.name
-ORDER BY km;`],
-      ['sql', `SELECT name, ST_AsText(geom) FROM cities
-WHERE ST_DWithin(geom, 'POINT(28.9784 41.0082)'::geography, 500000);`],
+      ['md', '# WITH RECURSIVE\nWalk a hierarchy without knowing its depth.'],
+      ['sql', `CREATE TABLE IF NOT EXISTS staff (id int PRIMARY KEY, name text, manager_id int);
+INSERT INTO staff VALUES (1,'CEO',NULL),(2,'CTO',1),(3,'CFO',1),(4,'Dev lead',2),(5,'Developer',4),(6,'Accountant',3)
+ON CONFLICT DO NOTHING;`],
+      ['sql', `WITH RECURSIVE chain AS (
+  SELECT id, name, manager_id, 0 AS depth, name::text AS path FROM staff WHERE manager_id IS NULL
+  UNION ALL
+  SELECT s.id, s.name, s.manager_id, c.depth + 1, c.path || ' › ' || s.name
+  FROM staff s JOIN chain c ON s.manager_id = c.id
+)
+SELECT repeat('   ', depth) || name AS org, path FROM chain ORDER BY path;`],
+      ['md', 'Fibonacci numbers — tap **Chart**:'],
+      ['sql', `WITH RECURSIVE fib(n, a, b) AS (
+  SELECT 1, 0::numeric, 1::numeric
+  UNION ALL SELECT n + 1, b, a + b FROM fib WHERE n < 25
+)
+SELECT n, a AS fibonacci FROM fib;`],
     ],
   },
   {
-    key: 'vector',
-    title: 'pgvector similarity',
-    subtitle: 'Nearest neighbours on embeddings',
-    needs: ['vector'],
+    key: 'plpgsql',
+    title: 'Functions & triggers',
+    subtitle: 'PL/pgSQL, triggers and constraints',
     cells: [
-      ['md', '# pgvector\nVectors are how AI embeddings are stored. Here we use tiny 3-dimensional ones.'],
-      ['sql', `CREATE EXTENSION IF NOT EXISTS vector;
-CREATE TABLE IF NOT EXISTS items (id serial PRIMARY KEY, label text, embedding vector(3));
-INSERT INTO items (label, embedding) VALUES
-  ('cat', '[0.9, 0.1, 0.1]'), ('dog', '[0.8, 0.2, 0.1]'),
-  ('car', '[0.1, 0.9, 0.2]'), ('bus', '[0.1, 0.8, 0.3]'),
-  ('apple', '[0.2, 0.1, 0.9]');`],
-      ['sql', `SELECT label, embedding <-> '[0.85, 0.15, 0.1]' AS distance
-FROM items
-ORDER BY distance
-LIMIT 3;`],
-      ['sql', `CREATE INDEX IF NOT EXISTS items_hnsw ON items USING hnsw (embedding vector_cosine_ops);
-EXPLAIN SELECT label FROM items ORDER BY embedding <=> '[0.1, 0.85, 0.25]' LIMIT 2;`],
-    ],
-  },
-  {
-    key: 'graph',
-    title: 'Graphs with Apache AGE',
-    subtitle: 'openCypher inside PostgreSQL',
-    needs: ['age'],
-    cells: [
-      ['md', '# Apache AGE\nTurn on **Apache AGE** in *Extensions*, then run the cells.'],
-      ['sql', `CREATE EXTENSION IF NOT EXISTS age;
-LOAD 'age';
-SET search_path = ag_catalog, "$user", public;
-SELECT create_graph('friends');`],
-      ['sql', `LOAD 'age';
-SET search_path = ag_catalog, "$user", public;
-SELECT * FROM cypher('friends', $$
-  CREATE (a:Person {name: 'Ada'})-[:KNOWS]->(b:Person {name: 'Alan'}),
-         (b)-[:KNOWS]->(c:Person {name: 'Grace'})
-$$) AS (v agtype);`],
-      ['sql', `LOAD 'age';
-SET search_path = ag_catalog, "$user", public;
-SELECT * FROM cypher('friends', $$
-  MATCH (a:Person {name: 'Ada'})-[:KNOWS*1..2]->(f) RETURN f.name
-$$) AS (friend agtype);`],
+      ['md', '# PL/pgSQL\nServer-side functions and triggers work exactly as on a big server.'],
+      ['sql', `CREATE TABLE IF NOT EXISTS accounts (id serial PRIMARY KEY, owner text, balance numeric CHECK (balance >= 0), updated_at timestamptz);
+
+CREATE OR REPLACE FUNCTION touch() RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS accounts_touch ON accounts;
+CREATE TRIGGER accounts_touch BEFORE INSERT OR UPDATE ON accounts FOR EACH ROW EXECUTE FUNCTION touch();`],
+      ['sql', `CREATE OR REPLACE FUNCTION transfer(src int, dst int, amount numeric) RETURNS void AS $$
+BEGIN
+  UPDATE accounts SET balance = balance - amount WHERE id = src;
+  UPDATE accounts SET balance = balance + amount WHERE id = dst;
+  RAISE NOTICE 'moved % from % to %', amount, src, dst;
+END $$ LANGUAGE plpgsql;
+
+INSERT INTO accounts (owner, balance) VALUES ('Ada', 100), ('Alan', 50);
+SELECT transfer(1, 2, 30);
+SELECT * FROM accounts ORDER BY id;`],
+      ['md', 'The CHECK constraint stops overdrafts:'],
+      ['sql', 'SELECT transfer(2, 1, 1000);'],
     ],
   },
 ];
 
-export function sampleNotebook(key: string, id: string): Notebook {
-  const s = SAMPLES.find((x) => x.key === key)!;
+export function extensionSamples(): Sample[] {
+  return EXTENSIONS.filter((e) => e.example).map((e) => ({ key: `ext:${e.id}`, title: e.example!.title, subtitle: e.tagline, ext: e.id, cells: e.example!.cells }));
+}
+
+export function sampleNotebook(s: Sample, id: string): Notebook {
   let n = 0;
   return {
     id,

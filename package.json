@@ -20,6 +20,7 @@
     "@capacitor/share": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.4",
+    "@capgo/native-purchases": "^8.9.16",
     "@codemirror/lang-markdown": "^6.5.2",
     "@codemirror/lang-sql": "^6.10.0",
     "@codemirror/theme-one-dark": "^6.1.3",
@@ -34,7 +35,10 @@
     "@electric-sql/pglite-pgvector": "^0.0.17",
     "@electric-sql/pglite-postgis": "^0.2.16",
     "codemirror": "^6.0.2",
-    "marked": "^18.2.1"
+    "marked": "^18.2.1",
+    "pglite16": "npm:@electric-sql/pglite@^0.2.17",
+    "pglite17": "npm:@electric-sql/pglite@^0.4.6",
+    "pglite17-postgis": "npm:@electric-sql/pglite-postgis@^0.0.8"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.2",

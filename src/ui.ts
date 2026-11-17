@@ -62,18 +62,26 @@ export function confirmBox(title: string, body: string, ok: string, danger = fal
 
 export function promptBox(title: string, label: string, value = '', ok = 'OK'): Promise<string | null> {
   return new Promise((resolve) => {
-    const input = h('input', { class: 'field', value, 'aria-label': label, placeholder: label, autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' }) as HTMLInputElement;
+    const input = h('input', { class: 'field', type: 'text', value, 'aria-label': label, placeholder: label, autocapitalize: 'none', autocorrect: 'off', autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'done' }) as HTMLInputElement;
+    const hint = h('div', { class: 'field-hint' });
     const done = (v: string | null) => { back.remove(); resolve(v); };
-    input.onkeydown = (e) => e.key === 'Enter' && done(input.value.trim() || null);
+    // An empty name keeps the dialog open with a hint instead of silently closing it.
+    const submit = () => {
+      const v = input.value.trim();
+      if (!v) { hint.textContent = 'Type a name first.'; input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); input.focus(); return; }
+      done(v);
+    };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+    input.addEventListener('input', () => { hint.textContent = ''; });
     const back = h('div', { class: 'sheet-back center' },
       h('div', { class: 'dialog' },
         h('div', { class: 'dialog-title' }, title),
-        h('div', { class: 'dialog-body' }, input),
+        h('div', { class: 'dialog-body' }, input, hint),
         h('div', { class: 'dialog-actions' },
           h('button', { onclick: () => done(null) }, 'Cancel'),
-          h('button', { class: 'primary', onclick: () => done(input.value.trim() || null) }, ok))));
+          h('button', { class: 'primary', onclick: submit }, ok))));
     document.body.append(back);
-    setTimeout(() => input.focus(), 50);
+    setTimeout(() => { input.focus(); input.select(); }, 50);
   });
 }
 

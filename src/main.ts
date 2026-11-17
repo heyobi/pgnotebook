@@ -649,6 +649,9 @@ async function boot() {
   engine.start().catch((e) => { console.error(e); toast('PostgreSQL did not start — see Databases', 'err'); });
 }
 
+// Automated checks (WebKit via Playwright) reach the engine through this hook; only with ?selftest in the URL.
+if (new URLSearchParams(location.search).has('selftest')) (window as unknown as Record<string, unknown>).__engine = engine;
+
 engine.onState((s) => { if (s.status !== 'starting' && route.tab === 'databases' && !route.notebook) render(); });
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => route.tab !== 'terminal' && render());
 void boot();

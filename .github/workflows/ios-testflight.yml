@@ -29,9 +29,32 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  webkit:
+    # Every extension must load in WebKit (the iOS engine) from the production build before anything ships.
+    name: Extensions in WebKit (PG ${{ matrix.pg }})
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        pg: [18, 17, 16]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps webkit
+      - run: npm run build
+      - name: Install every extension in WebKit
+        run: |
+          npx vite preview --port 4173 --strictPort &
+          npx wait-on -t 30000 http://localhost:4173 || sleep 5
+          node tests/webkit/extensions.mjs ${{ matrix.pg }}
+
   prepare:
     name: Check App Store Connect
-    needs: check
+    needs: [check, webkit]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5

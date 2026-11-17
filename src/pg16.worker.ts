@@ -1,3 +1,4 @@
+import './process-shim';
 import { PGlite } from 'pglite16';
 import { vector } from 'pglite16/vector';
 import { amcheck } from 'pglite16/contrib/amcheck';

@@ -24,6 +24,9 @@ let startPromise: Promise<void> | null = null;
 let dirty = false;
 let saveTimer: number | undefined;
 let meta: Meta = { schema: {}, functions: [], installed: [] };
+// Latest snapshot per database kept in memory, so a restart (extension install, switch) never depends on the file
+// write having succeeded.
+const memSnap = new Map<string, Blob>();
 
 export type EngineState = { status: 'starting' | 'ready' | 'error'; version?: string; error?: string; db?: Database };
 let state: EngineState = { status: 'starting' };
@@ -110,7 +113,7 @@ async function boot(): Promise<void> {
   if (!dbs.length) await loadState();
   const db = active()!;
   if (workerVersion !== db.version || !worker) spawn(db.version);
-  const dump = await readBlob('lib', snap(db.id));
+  const dump = memSnap.get(db.id) ?? (await readBlob('lib', snap(db.id)));
   try {
     const r = await call<{ version: string }>({ op: 'init', ext: withDeps(db.extensions), dump });
     setState({ status: 'ready', version: r.version });
@@ -167,6 +170,7 @@ export async function save(): Promise<void> {
   if (!db) return;
   try {
     const blob = await call<Blob>({ op: 'dump' });
+    memSnap.set(db.id, blob);
     await writeBlob('lib', snap(db.id), blob);
   } catch (e) {
     dirty = true;
@@ -250,6 +254,7 @@ export async function renameDatabase(id: string, name: string) {
 export async function deleteDatabase(id: string): Promise<void> {
   if (dbs.length === 1) throw new Error('Keep at least one database');
   dbs = dbs.filter((d) => d.id !== id);
+  memSnap.delete(id);
   await remove('lib', snap(id));
   if (activeId === id) {
     activeId = dbs[0].id;
@@ -260,6 +265,7 @@ export async function deleteDatabase(id: string): Promise<void> {
 
 export async function importSnapshot(blob: Blob): Promise<void> {
   const db = active()!;
+  memSnap.set(db.id, blob);
   await writeBlob('lib', snap(db.id), blob);
   dirty = false;
   await start();
@@ -269,6 +275,7 @@ export async function resetDatabase(): Promise<void> {
   clearTimeout(saveTimer);
   dirty = false;
   const db = active()!;
+  memSnap.delete(db.id);
   await remove('lib', snap(db.id));
   db.extensions = [];
   await saveState();

@@ -1,3 +1,4 @@
+import './process-shim';
 import { PGlite } from 'pglite17';
 import { postgis } from 'pglite17-postgis';
 import { vector } from 'pglite17/vector';

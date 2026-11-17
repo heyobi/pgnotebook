@@ -1,3 +1,4 @@
+import './process-shim';
 import { PGlite } from '@electric-sql/pglite';
 import { postgis } from '@electric-sql/pglite-postgis';
 import { vector } from '@electric-sql/pglite-pgvector';

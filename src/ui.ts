@@ -3,9 +3,10 @@ import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { blobToBase64 } from './storage';
+import { t } from './i18n';
 
 export const native = Capacitor.isNativePlatform();
-export const dark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+export { isDark as dark } from './i18n';
 
 export type Child = Node | string | null | undefined | false;
 export function h<K extends keyof HTMLElementTagNameMap>(
@@ -42,7 +43,7 @@ export function sheet(title: string, actions: { label: string; danger?: boolean;
       h('div', { class: 'sheet-group' },
         h('div', { class: 'sheet-title' }, title),
         actions.map((a) => h('button', { class: `sheet-btn${a.danger ? ' danger' : ''}`, onclick: () => { close(); a.run(); } }, a.label))),
-      h('button', { class: 'sheet-btn cancel', onclick: close }, 'Cancel')));
+      h('button', { class: 'sheet-btn cancel', onclick: close }, t('Cancel'))));
   document.body.append(back);
 }
 
@@ -54,13 +55,13 @@ export function confirmBox(title: string, body: string, ok: string, danger = fal
         h('div', { class: 'dialog-title' }, title),
         h('div', { class: 'dialog-body' }, body),
         h('div', { class: 'dialog-actions' },
-          h('button', { onclick: () => done(false) }, 'Cancel'),
+          h('button', { onclick: () => done(false) }, t('Cancel')),
           h('button', { class: danger ? 'danger' : 'primary', onclick: () => done(true) }, ok))));
     document.body.append(back);
   });
 }
 
-export function promptBox(title: string, label: string, value = '', ok = 'OK', fallback = ''): Promise<string | null> {
+export function promptBox(title: string, label: string, value = '', ok = t('OK'), fallback = ''): Promise<string | null> {
   return new Promise((resolve) => {
     const input = h('input', { class: 'field', type: 'text', value, 'aria-label': label, placeholder: label, autocapitalize: 'none', autocorrect: 'off', autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'done' }) as HTMLInputElement;
     const hint = h('div', { class: 'field-hint' });
@@ -68,7 +69,7 @@ export function promptBox(title: string, label: string, value = '', ok = 'OK', f
     // An empty name keeps the dialog open with a hint instead of silently closing it.
     const submit = () => {
       const v = input.value.trim() || fallback;
-      if (!v) { hint.textContent = 'Type a name first.'; input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); input.focus(); return; }
+      if (!v) { hint.textContent = t('Type a name first.'); input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); input.focus(); return; }
       done(v);
     };
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
@@ -78,7 +79,7 @@ export function promptBox(title: string, label: string, value = '', ok = 'OK', f
         h('div', { class: 'dialog-title' }, title),
         h('div', { class: 'dialog-body' }, input, hint),
         h('div', { class: 'dialog-actions' },
-          h('button', { onclick: () => done(null) }, 'Cancel'),
+          h('button', { onclick: () => done(null) }, t('Cancel')),
           h('button', { class: 'primary', onclick: submit }, ok))));
     document.body.append(back);
     setTimeout(() => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 50);

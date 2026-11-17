@@ -3,6 +3,7 @@ import type { ExecOk, PgError, ResultSet } from './engine';
 import { h, shareFile } from './ui';
 import { parseHexWkb, type Geom } from './wkb';
 import { LAND } from './world';
+import { t } from './i18n';
 
 const NUMERIC = new Set(['int2', 'int4', 'int8', 'float4', 'float8', 'numeric', 'oid', 'money']);
 const GEO = new Set(['geometry', 'geography']);
@@ -37,7 +38,7 @@ export function renderResult(out: HTMLElement, r: ExecOk) {
   const sets = r.results.filter((x) => x.fields.length);
   if (!sets.length) {
     const affected = r.results.reduce((a, x) => a + (x.affectedRows || 0), 0);
-    out.append(h('div', { class: 'ok' }, affected ? `✓ ${affected} row${affected === 1 ? '' : 's'} affected` : `✓ ${r.results.length} statement${r.results.length === 1 ? '' : 's'} executed`));
+    out.append(h('div', { class: 'ok' }, affected ? `✓ ${affected} ${t(affected === 1 ? 'row' : 'rows')} ${t('affected')}` : `✓ ${r.results.length} ${t(r.results.length === 1 ? 'statement' : 'statements')} ${t('executed')}`));
     return;
   }
   for (const rs of sets.slice(-3)) out.append(resultBlock(rs));
@@ -58,7 +59,7 @@ function resultBlock(rs: ResultSet): HTMLElement {
     [...tabs.children].forEach((c, j) => c.classList.toggle('on', i === j));
     body.replaceChildren(views[i][1]());
   };
-  views.forEach(([name], i) => tabs.append(h('button', { onclick: () => show(i) }, name)));
+  views.forEach(([name], i) => tabs.append(h('button', { onclick: () => show(i) }, t(name))));
   // Open on the most useful view: map for geometry results, table otherwise.
   show(geoCols.length ? views.findIndex((v) => v[0] === 'Map') : 0);
 
@@ -66,8 +67,8 @@ function resultBlock(rs: ResultSet): HTMLElement {
     views.length > 1 && tabs,
     body,
     h('div', { class: 'result-foot' },
-      h('span', {}, `${rs.rowCount.toLocaleString()} row${rs.rowCount === 1 ? '' : 's'}${rs.rowCount > rs.rows.length ? ` · first ${rs.rows.length}` : ''}`),
-      h('button', { class: 'link', onclick: () => shareFile('result.csv', csv(rs), 'text/csv') }, 'Export CSV')));
+      h('span', {}, `${rs.rowCount.toLocaleString()} ${t(rs.rowCount === 1 ? 'row' : 'rows')}${rs.rowCount > rs.rows.length ? ` · ${t('first')} ${rs.rows.length}` : ''}`),
+      h('button', { class: 'link', onclick: () => shareFile('result.csv', csv(rs), 'text/csv') }, t('Export CSV'))));
 }
 
 function table(rs: ResultSet): HTMLElement {
@@ -82,7 +83,7 @@ function table(rs: ResultSet): HTMLElement {
           const isGeo = GEO.has(rs.fields[ci].type);
           return h('td', { class: (isGeo ? 'geo ' : '') + (f.cls ?? '') }, isGeo && typeof v === 'string' ? geoLabel(v) : f.text);
         }))))),
-    rs.rows.length > MAX && h('div', { class: 'more-rows' }, `+ ${rs.rows.length - MAX} more rows — use Export CSV`));
+    rs.rows.length > MAX && h('div', { class: 'more-rows' }, `+ ${rs.rows.length - MAX} ${t('more rows — use Export CSV')}`));
 }
 
 function geoLabel(hex: string) {
@@ -101,14 +102,14 @@ function chart(rs: ResultSet, numCols: number[]): HTMLElement {
   const wrap = h('div', { class: 'chart' });
   const bar = h('div', { class: 'chips' });
   const draw = () => {
-    [...bar.children].forEach((c) => c.classList.toggle('on', c.textContent === kind));
+    [...bar.children].forEach((c, i) => c.classList.toggle('on', kinds[i] === kind));
     wrap.querySelector('svg')?.remove();
     wrap.querySelector('.legend')?.remove();
     wrap.append(kind === 'Scatter' ? scatterSvg(rs, numCols[0], numCols[1], labelCol) : seriesSvg(rs, numCols.slice(0, 6), labelCol, kind));
     if (kind !== 'Scatter' && numCols.length > 1)
       wrap.append(h('div', { class: 'legend' }, numCols.slice(0, 6).map((c, i) => h('span', {}, h('i', { style: { background: PALETTE[i] } }), rs.fields[c].name))));
   };
-  kinds.forEach((k) => bar.append(h('button', { onclick: () => { kind = k; draw(); } }, k)));
+  kinds.forEach((k) => bar.append(h('button', { onclick: () => { kind = k; draw(); } }, t(k))));
   wrap.append(bar);
   draw();
   return wrap;
@@ -200,7 +201,7 @@ function vectorPlot(rs: ResultSet, col: number): HTMLElement {
     const v = typeof r[col] === 'string' ? (r[col] as string).replace(/[[\]]/g, '').split(',').map(Number) : (r[col] as number[]);
     return { v, label: labelCol >= 0 ? fmtValue(r[labelCol]).text : '' };
   }).filter((d) => Array.isArray(d.v) && d.v.every(isFinite));
-  if (data.length < 2) return h('div', { class: 'muted pad' }, 'Need at least two vectors.');
+  if (data.length < 2) return h('div', { class: 'muted pad' }, t('Need at least two vectors.'));
   const dim = data[0].v.length;
   const mean = Array.from({ length: dim }, (_, j) => data.reduce((a, d) => a + d.v[j], 0) / data.length);
   const X = data.map((d) => d.v.map((x, j) => x - mean[j]));
@@ -239,7 +240,7 @@ function map(rs: ResultSet, geoCols: number[]): HTMLElement {
   const geographic = srid === 4326 || srid === 4269 || srid === null || srid === 0;
   const canvas = h('canvas', { class: 'map-canvas' }) as HTMLCanvasElement;
   const wrap = h('div', { class: 'map' }, canvas);
-  if (!feats.length) return h('div', { class: 'muted pad' }, 'No geometries to show.');
+  if (!feats.length) return h('div', { class: 'muted pad' }, t('No geometries to show.'));
 
   // Projection: Web Mercator for lon/lat data, identity otherwise.
   const merc = ([x, y]: number[]) => geographic ? [x, (Math.log(Math.tan(Math.PI / 4 + (Math.max(-85, Math.min(85, y)) * Math.PI) / 360)) * 180) / Math.PI] : [x, y];

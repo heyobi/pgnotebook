@@ -181,3 +181,13 @@ body.kb-open:not(.in-notebook) .page { padding-bottom: 16px; }
 /* Confirmation dialogs and action sheets always sit above full-screen modals (extension details, paywall). */
 .sheet-back { z-index: 65; }
 .toast { z-index: 70; }
+
+/* Appearance setting: data-theme on <html> overrides the system preference. */
+:root[data-theme='light'] { --bg: #f2f2f7; --surface: #ffffff; --surface-2: #f7f7fa; --text: #111114; --muted: #6b6b76; --line: #e2e2e8; --accent: #2f6fed; --danger: #d93a3a; --ok: #1f9d55; --warn: #b7791f;
+  --map-sea: #dfe8f3; --map-land: #f7f4ec; --map-coast: #b9c3cf;
+  --t-bg: #fbfbfd; --t-fg: #1d2330; --t-line: #dfe2ea; --t-echo: #1f5fd6; --t-err: #c62828; --t-ok: #17803d; --t-muted: #6b7385; --t-input: #0b0d12; --t-key: #f0f2f6; }
+:root[data-theme='dark'] { --bg: #0b0b0f; --surface: #17171d; --surface-2: #1f1f27; --text: #ececf1; --muted: #9a9aa8; --line: #2a2a34; --accent: #5b8cff; --danger: #ff6b6b; --ok: #4ade80; --warn: #f6c453;
+  --map-sea: #0d1724; --map-land: #1a2636; --map-coast: #2c3e57;
+  --t-bg: #0a0c10; --t-fg: #d7dde8; --t-line: #1f2633; --t-echo: #8fb4ff; --t-err: #ff8787; --t-ok: #7ee2a8; --t-muted: #7a8597; --t-input: #ffffff; --t-key: #161b24; }
+.setting-value { color: var(--muted); font-size: 15px; white-space: nowrap; }
+.i-sun { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/%3E%3C/svg%3E"); }

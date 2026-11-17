@@ -3,6 +3,7 @@
 import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases';
 import { h, icon, modal, native, toast } from './ui';
 import { EXTENSIONS } from './extensions';
+import { t } from './i18n';
 
 export const PRODUCT_ID = 'com.heyobi.pgnotebook.pro';
 const KEY = 'pgn-pro';
@@ -86,13 +87,13 @@ export function requirePro(reason?: string): Promise<boolean> {
     const featured = ['postgis', 'vector', 'age', 'pgcrypto', 'pg_trgm', 'pgtap'];
     const buyBtn = h('button', { class: 'btn primary big', onclick: async () => {
       buyBtn.setAttribute('disabled', '');
-      if (await buy()) { close(); finish(true); toast('Pro unlocked — thank you!'); }
+      if (await buy()) { close(); finish(true); toast(t('Pro unlocked — thank you!')); }
       buyBtn.removeAttribute('disabled');
-    } }, price ? `Unlock Pro · ${price}` : 'Unlock Pro');
-    if (native) void refreshPrice().then(() => { if (!buyBtn.hasAttribute('disabled')) buyBtn.textContent = price ? `Unlock Pro · ${price}` : 'Unlock Pro'; });
+    } }, price ? `${t('Unlock Pro')} · ${price}` : t('Unlock Pro'));
+    if (native) void refreshPrice().then(() => { if (!buyBtn.hasAttribute('disabled')) buyBtn.textContent = price ? `${t('Unlock Pro')} · ${price}` : t('Unlock Pro'); });
     const content = h('div', { class: 'paywall' },
       h('div', { class: 'pw-badge' }, 'PRO'),
-      h('h1', {}, 'Every extension, unlocked'),
+      h('h1', {}, t('Every extension, unlocked')),
       reason && h('p', { class: 'muted center' }, reason),
       h('div', { class: 'pw-grid' },
         featured.map((id) => {
@@ -101,12 +102,12 @@ export function requirePro(reason?: string): Promise<boolean> {
         })),
       h('ul', { class: 'pw-list' },
         h('li', {}, icon('check'), `${EXTENSIONS.length} extensions on PostgreSQL 16, 17 and 18`),
-        h('li', {}, icon('check'), 'Maps for PostGIS results, plots for vectors'),
-        h('li', {}, icon('check'), 'Example notebooks for each extension'),
-        h('li', {}, icon('check'), 'One-time purchase. No subscription, no account.')),
+        h('li', {}, icon('check'), t('Maps for PostGIS results, plots for vectors')),
+        h('li', {}, icon('check'), t('Example notebooks for each extension')),
+        h('li', {}, icon('check'), t('One-time purchase. No subscription, no account.'))),
       buyBtn,
-      h('button', { class: 'link', onclick: async () => { if (await restore()) { close(); finish(true); } } }, 'Restore purchase'),
-      h('p', { class: 'muted small center' }, 'PostgreSQL itself, notebooks, the terminal and charts stay free forever.'));
+      h('button', { class: 'link', onclick: async () => { if (await restore()) { close(); finish(true); } } }, t('Restore purchase')),
+      h('p', { class: 'muted small center' }, t('PostgreSQL itself, notebooks, the terminal and charts stay free forever.')));
     const close = modal(content, () => finish(pro));
   });
 }

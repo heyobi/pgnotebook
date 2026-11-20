@@ -1,25 +1,69 @@
-# Tuple — SQL Notebook
+<p align="center">
+  <img src="docs/icon.png" width="112" height="112" alt="Tuple app icon">
+</p>
 
-**PostgreSQL notebooks that run entirely on your iPhone.** A real PostgreSQL 18 server, PostGIS, pgvector,
-Apache AGE and 30+ other extensions, Jupyter-style cells, no network and no account.
+<h1 align="center">Tuple: PostgreSQL on your iPhone</h1>
 
+<p align="center">
+  <b>A real PostgreSQL 18 server that runs on your iPhone, offline.</b><br>
+  PostGIS maps, pgvector search, Apache AGE graphs, a psql terminal and Jupyter-style SQL notebooks.<br>
+  No server, no network, no account.
+</p>
+
+<p align="center">
+  <a href="https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208"><img src="docs/app-store-badge.svg" height="54" alt="Download Tuple on the App Store"></a>
+</p>
+
+<p align="center">
+  <img src="docs/screens/1.jpg" width="19%" alt="PostGIS query with results on an offline world map">
+  <img src="docs/screens/3.jpg" width="19%" alt="pgvector nearest-neighbour search plotted in 2-D">
+  <img src="docs/screens/4.jpg" width="19%" alt="psql-style terminal with \dx and \dt">
+  <img src="docs/screens/2.jpg" width="19%" alt="Extensions: PostGIS, pgvector, Apache AGE, pgcrypto">
+  <img src="docs/screens/6.jpg" width="19%" alt="Free SQL lessons from SELECT to window functions">
+</p>
+
+**[Get Tuple on the App Store](https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208)**: free, with a one-time Pro purchase for the extensions.
 Tuple is to PostgreSQL what Juno is to Python: you write SQL in cells, run them, and see the results as
-tables. Everything stays on the device.
+tables, charts and maps. Everything stays on the device.
+
+## Run PostgreSQL locally on iPhone and iPad
+
+**How do I run PostgreSQL on my iPhone?** Install [Tuple](https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208)
+and open it. A PostgreSQL 18 server starts on the device in milliseconds; there is nothing to configure and no
+server to connect to. Create tables, load data and query it in notebook cells or in the psql-style terminal.
+
+**Is it a client for a remote database?** No. Tuple is not a client: the database itself runs on your phone,
+compiled to WebAssembly ([PGlite](https://pglite.dev)). It works in flight mode.
+
+**Can I use PostGIS, pgvector or Apache AGE on iOS?** Yes, they are bundled in the app (Pro): PostGIS with
+geometry results drawn on an offline world map, pgvector for similarity search with a 2-D plot of embeddings,
+and Apache AGE for graph queries in openCypher. 30+ extensions in total.
+
+**Which PostgreSQL version?** PostgreSQL 18, 17 or 16, chosen per database. Several databases can live side by
+side, each with its own extensions.
+
+**Can I practise SQL for interviews or a course on my phone?** Yes: free lessons go from `SELECT` to joins,
+CTEs and window functions, each one a notebook you can edit and run.
+
+**Where is my data?** Only on your device. Notebooks are `.ipynb` files in *Files › On My iPhone › Tuple*, and
+the whole database can be backed up and restored as a `.tar.gz`.
 
 ## Features
 
-- **Real PostgreSQL 18** via [PGlite](https://pglite.dev) (PostgreSQL compiled to WebAssembly), running in a
-  background worker so the UI stays responsive.
-- **Notebooks**: SQL and Markdown cells, run one or *Run all*, results as scrollable tables, NOTICE output,
-  timings, CSV export of any result.
-- **Jupyter compatible**: notebooks are stored as `.ipynb` files (SQL kernel) in *Files › On My iPhone ›
-  Tuple › Notebooks*. Import `.ipynb` or `.sql`, share as either.
+- **Real PostgreSQL 18** (also 17 and 16) via [PGlite](https://pglite.dev), running in a background worker so the UI stays responsive.
+- **Notebooks**: SQL and Markdown cells, run one or *Run all*, results as tables, bar, line and scatter charts, maps for PostGIS, NOTICE output, timings, CSV export of any result.
+- **psql-style terminal** with `\d`, `\dt`, `\dx`, `\df`, `\l`, `\c`, `\x`, `\timing` and history.
+- **Jupyter compatible**: notebooks are stored as `.ipynb` files (SQL kernel). Import `.ipynb` or `.sql`, share as either.
 - **Extensions** bundled in the app (nothing is downloaded): PostGIS, pgvector, Apache AGE, pgcrypto, pg_trgm,
   hstore, ltree, citext, uuid-ossp, pg_uuidv7, pg_hashids, tablefunc, pg_ivm, pgmq, pgTAP, pg_textsearch,
-  btree_gin/gist, bloom and more. Turn them on in *Database*; `CREATE EXTENSION` on one that is off offers to turn it on.
-- **Autocomplete** for keywords, tables and columns of your database.
+  btree_gin/gist, bloom and more.
+- **Autocomplete** for keywords, tables, columns and functions of your database.
 - **Backups**: export the whole database as a `.tar.gz`, restore it later or on another device.
-- SQL symbol bar above the keyboard, light and dark mode.
+- **Free lessons**: learn SQL from zero to window functions.
+- SQL symbol bar above the keyboard, light and dark mode, English and Turkish.
+
+Also by the same developer: **[Querly](https://github.com/heyobi/querly)**, a CSV, Excel and JSON viewer with
+charts and DuckDB on iPhone, iPad and iPhone Duo.
 
 ## How it works
 
@@ -60,8 +104,6 @@ Connect app record must exist (bundle ID `com.heyobi.pgnotebook`).
 
 ## Roadmap
 
-- Map view for PostGIS geometry columns
-- Several databases, each with its own extensions
 - `COPY FROM` a CSV picked in Files
 - EXPLAIN plan visualiser
 - Go and other languages as sibling apps

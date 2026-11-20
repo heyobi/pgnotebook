@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuple: run PostgreSQL on iPhone and iPad, offline | PostGIS, pgvector, psql</title>
+<meta name="description" content="Run a real PostgreSQL 18 database locally on iPhone and iPad, offline. PostGIS, pgvector, Apache AGE, psql terminal, Jupyter-style SQL notebooks and free SQL lessons.">
+<meta name="keywords" content="PostgreSQL iPhone, run PostgreSQL locally on iPhone, Postgres iOS app, PostGIS iOS, pgvector iPhone, psql iPhone, offline SQL database iPhone, PGlite, SQL notebook iPad, learn SQL iPhone">
+<link rel="canonical" href="https://heyobi.github.io/pgnotebook/">
+<link rel="icon" href="icon.png">
+<meta name="apple-itunes-app" content="app-id=6835658208">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tuple: run PostgreSQL on iPhone and iPad, offline | PostGIS, pgvector, psql">
+<meta property="og:description" content="Run a real PostgreSQL 18 database locally on iPhone and iPad, offline. PostGIS, pgvector, Apache AGE, psql terminal, Jupyter-style SQL notebooks and free SQL lessons.">
+<meta property="og:url" content="https://heyobi.github.io/pgnotebook/">
+<meta property="og:image" content="https://heyobi.github.io/pgnotebook/screens/1.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Tuple", "operatingSystem": "iOS, iPadOS", "applicationCategory": "DeveloperApplication", "description": "Run a real PostgreSQL 18 database locally on iPhone and iPad, offline. PostGIS, pgvector, Apache AGE, psql terminal, Jupyter-style SQL notebooks and free SQL lessons.", "url": "https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208", "downloadUrl": "https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208", "image": "https://heyobi.github.io/pgnotebook/icon.png", "screenshot": ["https://heyobi.github.io/pgnotebook/screens/1.jpg", "https://heyobi.github.io/pgnotebook/screens/3.jpg", "https://heyobi.github.io/pgnotebook/screens/4.jpg", "https://heyobi.github.io/pgnotebook/screens/2.jpg", "https://heyobi.github.io/pgnotebook/screens/5.jpg", "https://heyobi.github.io/pgnotebook/screens/6.jpg", "https://heyobi.github.io/pgnotebook/screens/7.jpg"], "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "heyobi", "url": "https://github.com/heyobi"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I run PostgreSQL on my iPhone?", "acceptedAnswer": {"@type": "Answer", "text": "Install Tuple from the App Store and open it. A PostgreSQL 18 server starts on the device in milliseconds; there is nothing to configure and no server to connect to."}}, {"@type": "Question", "name": "Is Tuple a client for a remote PostgreSQL server?", "acceptedAnswer": {"@type": "Answer", "text": "No. The database runs on your iPhone or iPad itself, compiled to WebAssembly with PGlite, so it works offline."}}, {"@type": "Question", "name": "Can I use PostGIS and pgvector on iOS?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. PostGIS, pgvector, Apache AGE and 30+ other extensions are bundled in the app and need no download."}}, {"@type": "Question", "name": "Which PostgreSQL versions does Tuple support?", "acceptedAnswer": {"@type": "Answer", "text": "PostgreSQL 18, 17 and 16. Each database can use its own version and extensions."}}, {"@type": "Question", "name": "Does Tuple have a psql terminal?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, a psql-style terminal with \\d, \\dt, \\dx, \\df, \\l, \\c, \\x and \\timing."}}, {"@type": "Question", "name": "Can I learn SQL on my iPhone with Tuple?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Free lessons cover SELECT, filtering, joins, GROUP BY, CTEs and window functions, each one a notebook you can run."}}, {"@type": "Question", "name": "Where is my data stored?", "acceptedAnswer": {"@type": "Answer", "text": "Only on your device. Notebooks are .ipynb files in Files › On My iPhone › Tuple, and databases can be backed up and restored as .tar.gz files."}}]}</script>
+<style>
+:root{--bg:#fff;--fg:#14141a;--muted:#5b5b6b;--card:#f4f5f8;--line:#e3e5ec;--accent:#4f6bff}
+@media (prefers-color-scheme:dark){:root{--bg:#0b0b10;--fg:#f2f2f6;--muted:#a4a4b4;--card:#16161e;--line:#262633;--accent:#7d93ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:40px 16px 64px}
+header{text-align:center}header img.icon{width:112px;height:112px;border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.15;margin:18px 0 10px;letter-spacing:-.02em}
+.lead{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:720px;margin:0 auto 22px}
+.badge img{height:54px}
+.shots{display:flex;gap:14px;overflow-x:auto;padding:28px 0 8px;scroll-snap-type:x mandatory}
+.shots img{height:min(560px,70vh);border-radius:18px;scroll-snap-align:center;flex:none;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+h2{font-size:28px;margin:48px 0 12px;letter-spacing:-.01em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card b{display:block;margin-bottom:4px}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:10px 0}
+summary{font-weight:600;cursor:pointer}
+a{color:var(--accent)}code{font:15px ui-monospace,Menlo,monospace;background:var(--card);padding:1px 6px;border-radius:6px}
+.wide img{width:100%;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+footer{color:var(--muted);font-size:14px;margin-top:56px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <img class="icon" src="icon.png" alt="Tuple app icon" width="112" height="112">
+  <h1>Run PostgreSQL on your iPhone</h1>
+  <p class="lead">Tuple is a real PostgreSQL 18 server on your iPhone and iPad: offline, in milliseconds. PostGIS maps, pgvector search, Apache AGE graphs, a psql terminal and SQL notebooks. No server, no network, no account.</p>
+  <a class="badge" href="https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208"><img src="app-store-badge.svg" alt="Download Tuple on the App Store"></a>
+</header>
+<div class="shots">
+    <img src="screens/1.jpg" alt="PostGIS query with results on an offline world map" loading="lazy">
+    <img src="screens/3.jpg" alt="pgvector nearest-neighbour search plotted in 2-D" loading="lazy">
+    <img src="screens/4.jpg" alt="psql-style terminal" loading="lazy">
+    <img src="screens/2.jpg" alt="Extensions: PostGIS, pgvector, Apache AGE, pgcrypto" loading="lazy">
+    <img src="screens/5.jpg" alt="Window functions with a running total" loading="lazy">
+    <img src="screens/6.jpg" alt="Free SQL lessons" loading="lazy">
+    <img src="screens/7.jpg" alt="Several databases, PostgreSQL 16, 17 or 18" loading="lazy">
+</div>
+<h2>A database, not a client</h2>
+<div class="grid">
+    <div class="card"><b>PostgreSQL 18 on the device</b>Also 17 and 16, chosen per database, running in WebAssembly (PGlite). Works in flight mode.</div>
+    <div class="card"><b>PostGIS with maps</b>Geometry and geography types and 1000+ spatial functions; results drawn on an offline world map.</div>
+    <div class="card"><b>pgvector</b>Vector similarity search with a 2-D plot of your embeddings.</div>
+    <div class="card"><b>Apache AGE</b>Graph queries in openCypher, inside PostgreSQL.</div>
+    <div class="card"><b>psql terminal</b>Backslash commands like \d, \dt, \dx, \df, \l, \c, \x and \timing, with history.</div>
+    <div class="card"><b>Jupyter-style notebooks</b>SQL and Markdown cells saved as .ipynb in the Files app; tables, charts and maps.</div>
+    <div class="card"><b>30+ extensions</b>pgcrypto, pg_trgm, hstore, ltree, citext, uuid-ossp, tablefunc, pgmq, pgTAP and more, all bundled.</div>
+    <div class="card"><b>Learn SQL</b>Free lessons from SELECT to joins, CTEs and window functions.</div>
+</div>
+
+<h2>Questions</h2>
+  <details><summary>How do I run PostgreSQL on my iPhone?</summary><p>Install Tuple from the App Store and open it. A PostgreSQL 18 server starts on the device in milliseconds; there is nothing to configure and no server to connect to.</p></details>
+  <details><summary>Is Tuple a client for a remote PostgreSQL server?</summary><p>No. The database runs on your iPhone or iPad itself, compiled to WebAssembly with PGlite, so it works offline.</p></details>
+  <details><summary>Can I use PostGIS and pgvector on iOS?</summary><p>Yes. PostGIS, pgvector, Apache AGE and 30+ other extensions are bundled in the app and need no download.</p></details>
+  <details><summary>Which PostgreSQL versions does Tuple support?</summary><p>PostgreSQL 18, 17 and 16. Each database can use its own version and extensions.</p></details>
+  <details><summary>Does Tuple have a psql terminal?</summary><p>Yes, a psql-style terminal with \d, \dt, \dx, \df, \l, \c, \x and \timing.</p></details>
+  <details><summary>Can I learn SQL on my iPhone with Tuple?</summary><p>Yes. Free lessons cover SELECT, filtering, joins, GROUP BY, CTEs and window functions, each one a notebook you can run.</p></details>
+  <details><summary>Where is my data stored?</summary><p>Only on your device. Notebooks are .ipynb files in Files › On My iPhone › Tuple, and databases can be backed up and restored as .tar.gz files.</p></details>
+<footer>
+  <p><a href="https://apps.apple.com/us/app/tuple-sql-notebook/id6835658208">Tuple on the App Store</a> · <a href="https://github.com/heyobi/pgnotebook">Source code on GitHub</a> · <a href="https://heyobi.github.io/querly/">Querly: CSV viewer and DuckDB on iPhone</a></p>
+  <p>PostgreSQL is a trademark of the PostgreSQL Community Association; Tuple is not affiliated with or endorsed by it.</p>
+</footer>
+</main>
+</body>
+</html>
